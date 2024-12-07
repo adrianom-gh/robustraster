@@ -16,11 +16,20 @@ Robust-Raster aims to lower the barriers to analyzing large datasets, making adv
 - **User-Friendly Design:** Supports data frames for analysis, providing a simpler alternative to working with xarray objects.
 
 ## Installation
-Install Robust-Raster via pip:
+### 1. Conda
 ```bash
+conda create -n robustraster python=3.10.12
+conda activate robustraster
 pip install robustraster
 ```
 
+### 2. Virtualenv + pyenv
+```bash
+pyenv install 3.10.12
+pyenv virtualenv 3.10.12 robustraster
+pyenv activate robustraster
+pip install robustraster
+```
 ## Usage
 A comprehensive example is available in `demo.ipynb`, showcasing how to effectively use Robust-Raster. This notebook includes detailed comments to guide users through the process step by step. Please note that Robust-Raster is still in its early stages, and more documentation and updates will be provided over time!
 
