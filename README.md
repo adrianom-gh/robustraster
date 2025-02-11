@@ -31,7 +31,7 @@ pyenv activate robustraster
 pip install robustraster
 ```
 ## Usage
-A comprehensive example is available in `demo.ipynb`, showcasing how to effectively use Robust-Raster. This notebook includes detailed comments to guide users through the process step by step. Please note that Robust-Raster is still in its early stages, and more documentation and updates will be provided over time!
+A comprehensive example is available in `demo.ipynb`, showcasing how to effectively use Robust-Raster. This notebook includes detailed comments to guide users through the process step by step. A Documentation PDF is available in the /docs folder. Please note that Robust-Raster is still in its early stages, and more documentation and updates will be provided over time!
 
 ## Contributing
 I welcome contributions to Robust-Raster! If you have suggestions or encounter issues, please submit them via the GitHub Issues page.
