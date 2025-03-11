@@ -18,18 +18,15 @@ Robust-Raster aims to lower the barriers to analyzing large datasets, making adv
 ## Installation
 ### 1. Conda
 ```bash
-conda create -n robustraster python=3.10.12
+conda create -n robustraster python=3.10.16
 conda activate robustraster
-pip install robustraster
+conda install adrianom::robustraster
 ```
 
 ### 2. Virtualenv + pyenv
-```bash
-pyenv install 3.10.12
-pyenv virtualenv 3.10.12 robustraster
-pyenv activate robustraster
-pip install robustraster
-```
+Installing using pip is broken at the moment due to the use of GDAL in my package. GDAL is a compiled C++ library code and makes my package trickier to work on different platforms. At the moment, Anaconda is the only option and is available
+only on Windows machines. I will update this as I go. Thanks!
+
 ## Usage
 A comprehensive example is available in `demo.ipynb`, showcasing how to effectively use Robust-Raster. This notebook includes detailed comments to guide users through the process step by step. A Documentation PDF is available in the /docs folder. Please note that Robust-Raster is still in its early stages, and more documentation and updates will be provided over time!
 
