@@ -35,7 +35,7 @@ conda create -n robustraster -c adrianom -c conda-forge python=3.10.16 gdal robu
 
 ## Usage
 
-A comprehensive example is available in `demo.ipynb`, showcasing how to effectively use robustraster. This notebook includes detailed comments to guide users through the process step by step. Refer to the /docs folder in the GitHub repo for detailed information. Please note that robustraster is still in its early stages, and more documentation and updates will be provided over time!
+A comprehensive example is available in `demo.ipynb`, showcasing how to effectively use robustraster. This notebook includes detailed comments to guide users through the process step by step. Refer to the (docs/) folder in the GitHub repo for detailed information. Please note that robustraster is still in its early stages, and more documentation and updates will be provided over time!
 
 ## Contributing
 
