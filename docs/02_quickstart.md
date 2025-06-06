@@ -31,10 +31,12 @@ In this example, we’ll export NDVI tiles to your local machine using Google Ea
 ---
 
 ```python
+# 1. Define a custom function
 def compute_ndvi(df):
     df["ndvi"] = (df["SR_B5"] - df["SR_B4"]) / (df["SR_B5"] + df["SR_B4"])
     return df
 
+# 2. Query Earth Engine for Landsat imagery
 import ee
 ee.Initialize(opt_url='https://earthengine-highvolume.googleapis.com')
 
@@ -64,6 +66,7 @@ ic = (
     .select(['SR_B4', 'SR_B5'])
 )
 
+# 3 / 4. Dataset parameters are defined using "dataset_kwargs".
 from robustraster import run
 
 run(
