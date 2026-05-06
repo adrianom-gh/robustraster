@@ -1,17 +1,17 @@
 # Function Tuning with `tune_function`
 
-The `tune_function` parameter in `run()` is designed to automatically optimize how your custom function is applied to large datasets. It evaluates your dataset and available system resources to determine the most efficient way to process the data in parallel.
+The `tune_function` key in `function_tuning_config` is designed to automatically optimize how your custom function is applied to large datasets. It evaluates your dataset and physically gauges your system's resources in real-time to determine the most computationally optimal chunk configuration for processing the data in parallel.
 
 ---
 
 ## What Does It Do?
 
-If you set `tune_function` to `True`, it will take in two things:
+If you set `"tune_function": True` inside your `function_tuning_config` dictionary, it will take in two things:
 
 1. Your **dataset object**
 2. Your **custom function**
 
-It then runs a benchmarking routine to tune the function execution based on how your system performs.
+It then runs a dynamic benchmarking routine to construct and test isolated geometries under load natively to mathematically lock onto the perfect processing ratios.
 
 ---
 
@@ -37,33 +37,28 @@ Choosing the **right chunk size** is critical. Too small? You waste overhead man
 
 ## What Does `tune_function` Actually Do?
 
-The tuning process follows this logic:
+The tuning process dynamically models your system to find the optimal bounds seamlessly. The logic proceeds as follows:
 
-1. **Start with the smallest valid chunk**.
-2. Run the user function on a single chunk.
-3. Record performance metrics (such as time and memory usage).
-4. Increase the chunk size by a factor of 2.
-5. At each iteration, compare the most recent compute time to the previous one.
-   - If performance worsens (i.e., compute time increases), stop and return the chunk size from the previous iteration.
-   - If performance is better (i.e. compute time decreases), repeat steps 2-4.
-6. Use the best-performing chunk size to do a full run of your function on the dataset.
+1. **Calculate the 10MB Jumpstart**: Instead of starting microscopic, `robustraster` parses the byte structure (`dtype.itemsize`) of your data variables to calculate a dense starting block representing roughly `10 MiB` of data tightly scaled across spatial boundaries. 
+2. **Execute the Baseline Benchmark**: It processes this block using your function. Crucially, if you are using Google Earth Engine, `robustraster` actively downloads the chunk *before* initializing the Dask performance timer. This completely isolates your custom function execution timing from Earth Engine's variable network latency ping. 
+3. **Capture Memory and Performance Metrics**: It measures the raw processing cadence (`Tparallel`) and the exact RAM payload utilized (`RC(GiB)`).
+4. **Scale Up Continuously**: The chunk boundary explicitly doubles on alternating axes (e.g. `X`, then `Y`), bounded dynamically by the overarching coordinate geometry limits so overlapping splits never occur.
+5. **Evaluate Benchmarks Dynamically**: At each double, it measures throughput variance margins:
+   - **Improvement (>5%)**: The algorithm definitively progressed. It loops forward.
+   - **Plateau (-5% to +5%)**: If scaling boundaries plateau due to hardware jitter or network cloud anomalies, the process runs cleanly up to 3 more times before stopping.
+   - **Degradation (<-5%)**: The maximum hardware efficiency limit was completely breached. It immediately aborts and locks into the previous array scale.
+6. **Limit via Maximum Worker Node Capacity**: Additionally, if any processed chunk consumes over **80% of your maximum physical Dask worker RAM allocation**, the sequence triggers an absolute hard-limit abort natively to preempt out-of-memory crashes natively.
 
-The tuning process **stops early** if the system runs out of memory or if performance degrades.
-
-Steps 2-5 can be set with a hard limit with `max_iterations`. For example, if `max_iterations` is set to `10`, steps 2-5 will loop `10` times and stop.
+The process repeats these loops geometrically until it reaches absolute degradation, or hard stops due to limits configuration (such as capping cycles leveraging `max_iterations = 10`).
 
 ---
 
 ## What Does It Output?
 
-Nothing really. You won't see anything happen on your screen. The best-performing chunk size is used to split apart your dataset into chunks of this size and then the full computation begins.
+When `tune_function` fires, you won't see popups on your screen. However, under the hood, passing metrics and optimized boundaries are natively intercepted and injected directly back into your Dask cluster. Your full dataset compilation begins immediately utilizing exactly generated chunk size ratios. 
 
 ## Last Note
 
-The tune_function parameter is completely optional. When set to False (default), the tuning step is skipped and a default chunk size is used automatically. This default configuration already does a solid job splitting the data for efficient processing in most scenarios.
+The `tune_function` key is completely optional. When set to `False` (default), the tuning step is skipped entirely mathematically, and a default chunk size configuration is utilized automatically. This default configuration already does an exceptionally solid job parallelizing your arrays natively. 
 
-Currently, enabling `tune_function=True` adds the time it takes to download data from Google Earth Engine into the performance calculation — which can distort results. Since network speeds vary between users and Earth Engine itself is a free shared resource with inconsistent throughput, this can lead to misleading optimization outcomes.
-
-In the future, I plan to improve this by isolating the function’s actual compute time from the data download time.
-
-If you prefer to control chunking directly, you can leave `tune_function=False` and pass your own chunk sizes via `export_params` using the `chunks` keyword.
+If you prefer to control your Dask environment logic manually, you can simply leave `"tune_function": False` (or omit it entirely) and cleanly pass your own arbitrary dimension chunks utilizing the `"chunks"` key within `function_tuning_config`.

@@ -21,67 +21,63 @@ The input raster source.
 
 ---
 
-### 2. `source: str`  
-A string that defines the dataset source.  
+### 2. `user_function_config: dict[str, Any]`
+A dictionary of user function configuration options. 
 
-- Use `"local"` for raster files on disk  
-- Use `"ee"` for Earth Engine collections
-
----
-
-### 3. `user_function: Callable[[pd.DataFrame], pd.DataFrame]`  
-Your custom processing function.  
-This function must:  
-
-- Accept a `pandas.DataFrame`  
-- Return a modified `DataFrame` with `x` and `y` columns preserved
+- `user_function: Callable[[pd.DataFrame], pd.DataFrame]`: Name of the user function to be used for processing the dataset.  
+- `user_function_args: tuple`: Tuple of user function arguments to pass into `user_function`.
+- `user_function_kwargs: dict[str, Any]`: Dictionary of user function keyword arguments to pass into `user_function`.
+- `is_r_function: bool`: Set to `True` if you are executing R code instead of Python. Requires `dask_use_docker` to be `True`.
+- `r_function_code: str`: The R script code as a string (required if `is_r_function=True`).
+- `r_function_name: str`: The name of the main R function to execute (required if `is_r_function=True`).
 
 ---
 
-### 4. `export_params: dict[str, Any]`  
-A dictionary of export configuration options.  
+### 3. `export_config: dict[str, Any]`  
+A dictionary of export configuration options.   
 
-Based on the value of `"flag"`:  
+- `mode: str`: `raster` for raster export and `vector` for vector export.  
+- `file_format: str`: `GTiff` for GeoTIFF export. `CSV` and `parquet` for vector export. 
+- `output_folder: str`: Folder name to save outputs. 
+- `vrt: bool`: `True` to generate a VRT mosaic. Only available for `raster` mode. Cannot be used if exporting results to the cloud.
 
-- `"GTiff"` (GeoTIFF export):  
-  - `output_folder`: Path to save output tiles  
-  - `vrt`: `True` to generate a VRT mosaic  
+- `export_to_gcs: bool`: True to export results to GCS. 
+  - `gcs_credentials: str`: Path to service account credentials JSON  
+  - `gcs_bucket: str`: Name of the GCS bucket  
+  - `gcs_folder: str`: (Optional) Folder within the bucket to store outputs
 
-- `"GCS"` (Google Cloud Storage):  
-  - `gcs_credentials`: Path to service account credentials JSON  
-  - `gcs_bucket`: Name of the GCS bucket  
-  - `gcs_folder`: (Optional) Folder within the bucket to store outputs  
-  - `chunks`: (Optional) Custom Dask chunk size. If you are familar with Dask chunking and don't want to tune your function with `tune_function`, you can pass in your own chunk size
+- `upload_results_to_gee: bool`: True to automate generating an Earth Engine manifest and uploading the results from GCS to Earth Engine. Requires `export_to_gcs` to be True.
+  - `gee_asset_path: str`: The full path to the Earth Engine Folder or ImageCollection to upload into (e.g., `projects/my-project/assets/my_ndvi_collection`). The engine will automatically append the time tag (e.g., the year) to the asset path for each generated image.
 
 ---
 
 ## Optional Parameters
 
-### 5. `dataset_params: dict[str, Any]`  
+### 4. `function_tuning_config: dict[str, Any]`
+A dictionary of function tuning configuration options.
+
+- `tune_function: bool`: Set to `True` to automatically find an appropriate chunk size for optimized processing. Defaults to `False`. See [`05_tuning.md`](./05_tuning.md) for details.
+- `chunks: tuple | dict`: Tuple or dictionary of chunk sizes for optimized processing. See [`03_what_is_dask.md`](./03_what_is_dask.md) for details.
+- `max_iterations: int | None`: If `tune_function=True`, you can set the amount of times the tuning process iterates to find an optimal chunk size. Defaults to `None`. See [`05_tuning.md`](./05_tuning.md) for details.
+- `output_column_names: list[str]`: (Optional) List of column names that will be in the output result. As of recent updates, this is now inferred automatically!
+
+
+### 5. `dataset_config: dict[str, Any]`  
 Required only for Earth Engine datasets. Includes:
 
-- `geometry`: Path to `.geojson`, `.shp`, `.gpkg`, zipped shapefiles, an ee.Geometry() or an ee.FeatureCollection() 
-- `crs`: Coordinate reference system (e.g., `"EPSG:4326"`)  
-- `scale`: Spatial resolution (e.g., `30` for 30 meters)  
-- `projection`: An `ee.Projection` object  
+- `geometry: str | ee.Geometry | ee.FeatureCollection`: Path to `.geojson`, `.shp`, `.gpkg`, zipped shapefiles, an ee.Geometry() or an ee.FeatureCollection() 
+- `crs: str`: Coordinate reference system (e.g., `"EPSG:4326"`)  
+- `scale: int | float`: Spatial resolution (e.g., `30` for 30 meters)  
 
 ---
 
-### 6. `user_function_args: tuple`  
-Positional arguments to be passed to your user-defined function.  
-Defaults to `()`.
-See Example 3 in [`02_quickstart.md`](./02_quickstart.md) for an example.
+### 6. `max_pixels_per_tile: int`
+The maximum number of pixels to process per chunk/tile when pulling data from Earth Engine.
+Defaults to `1_000_000`.
 
 ---
 
-### 7. `user_function_kwargs: dict[str, Any]`  
-Keyword arguments for your user-defined function.  
-Defaults to `None`.
-See Example 4 in [`02_quickstart.md`](./02_quickstart.md) for an example.
-
----
-
-### 8. `preview_dataset: bool`
+### 7. `preview_dataset: bool`
 Set to `True` to display a small preview of the dataset before and after excecuting your function.
 This allows users to inspect the structure and content of the data to ensure it behaves as expected prior to running a full computation.
 Useful for debugging.
@@ -89,53 +85,45 @@ Defaults to `False`.
 
 ---
 
-### 9. `tune_function: bool`  
-Set to `True` to automatically find an appropriate chunk size for optimized processing.  
-Defaults to `False`.
-See [`05_tuning.md`](./05_tuning.md) for details.
-
----
-
-### 10. `max_iterations: int`
-If `tune_function=True`, you can set the amount of times the tuning process iterates to find an optimal chunk size.
-Defaults to `None`.
-See [`05_tuning.md`](./05_tuning.md) for details.
-
----
-
-### 11. `dask_mode: str`  
+### 8. `dask_mode: str`  
 Defines how to initialize the Dask cluster.  
 Defaults to `"full"`.
 
 - `"full"`: Use all available cores and memory  
 - `"test"`: Single-threaded/single worker mode for debugging  
-- `"custom"`: Requires `dask_kwargs`
+- `"custom"`: Requires `dask_config`
 
 ---
 
-### 12. `dask_kwargs: dict[str, Any]`  
+### 9. `dask_config: dict[str, Any]`  
 Used only when `dask_mode="custom"`.  
 
-Includes:
-
-- `n_workers`: Number of workers  
-- `threads_per_worker`: Threads per worker. Defaults to 1. I HIGHLY RECOMMEND NOT CHANGING THIS UNLESS YOU ARE ABSOLUTELY SURE YOU KNOW WHAT YOU ARE DOING!   
-- `memory_limit`: RAM per worker (e.g., `"2GB"`)
+- `n_workers: int`: Number of workers  
+- `threads_per_worker: int`: Threads per worker. Defaults to 1. I HIGHLY RECOMMEND NOT CHANGING THIS UNLESS YOU ARE ABSOLUTELY SURE YOU KNOW WHAT YOU ARE DOING!   
+- `memory_limit: str`: RAM per worker (e.g., `"2g"`)
 
 ---
 
-### 13. `hooks: dict[str, Callable]`  
+### 10. `docker_image: str`
+The Docker image to use for the Dask workers if you want to run the Dask cluster using Docker containers. Required for executing R code.
+
+---
+
+### 11. `dask_docker_kwargs: dict[str, Any]`
+Additional keyword arguments to pass to the Docker container initialization (e.g., configurations specific to the docker-py package or passing environment configs).
+
+---
+
+### 12. `hooks: dict[str, Callable]`  
 Allows you to inject functions at various stages of the run lifecycle.  
 
 Hook keys include:
 
-- `before_run`: Runs before any processing begins  
-- `after_dataset_loaded`: Runs after dataset is loaded, but before your function runs 
-- `after_run`: Runs after everything is complete  
+- `before_run: Callable`: Runs before any processing begins  
+- `after_dataset_loaded: Callable`: Runs after dataset is loaded, but before your function runs 
+- `after_run: Callable`: Runs after everything is complete  
 
 
-`hooks` comes with one prebuilt `after_run` function: `preview_dataset_hook`. This will allow you to preview a portion of the data before and after the run to ensure the general structure of the data looks good before doing a full computation. `preview_dataset_hook` will terminate `run()` once it gives you the preview. Remove `preview_dataset_hook` from your `run()` parameters if you ready to run your function on the dataset.
-
-See Example 2 in [`02_quickstart.md`](./02_quickstart.md) for an example of how to use a hook function.
+`preview_dataset` will allow you to preview a portion of the data before and after the run to ensure the general structure of the data looks good before doing a full computation. `preview_dataset` will terminate `run()` once it gives you the preview. Remove `preview_dataset` from your `run()` parameters if you ready to run your function on the dataset.
 
 ---
