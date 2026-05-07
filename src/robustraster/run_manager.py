@@ -91,6 +91,7 @@ def run(
     dask_config = dask_config or {}
     dask_docker_kwargs = dask_docker_kwargs or {}
     hooks = hooks or {}
+    user_function_config = user_function_config or {}
 
     # user_function_config parameters extracted
     user_function = user_function_config.get("user_function")
@@ -589,7 +590,7 @@ write.csv(out_data, "{out_csv_r}", row.names=FALSE)
             upload_to_gee_from_gcs(export_config)
 
     except Exception as e:
-        print(f"[robustraster] ❌ {type(e).__name__} during run():", str(e))
+        print(f"[robustraster] Error: {type(e).__name__} during run():", str(e))
         raise
 
     finally:
