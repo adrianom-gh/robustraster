@@ -28,6 +28,8 @@ Extensive documentation is available in the [`/docs`](docs/) folder:
 
 ## Installation
 ```bash
+conda create -n robustraster 
+conda activate robustraster
 conda install adrianom::robustraster
 ```
 
@@ -52,4 +54,4 @@ I would like to acknowledge the following projects for their contributions and i
 - CALFIRE. *"Research for a Cyberinfrastructure-Enabled Carbon and Fuels Mapping Model Prototype (Phase 2)."* 2022. Greenberg, J.A.
 - CALFIRE. *"Research for a Cyberinfrastructure-Enabled Carbon and Fuels Mapping Model Prototype (Phase 1)."* 2021. Ramirez, C. and J.A. Greenberg.
 - California Air Resources Board. *"Advanced Carbon Modeling Techniques for the Forest Health Quantification Methodology."* 2021. Greenberg, J.A. and E. Hanan.
-- NASACarbon Monitoring System. *"A Phase 3 CMS that disaggregates forest biomass estimates in response to stakeholder needs: Seeing the Forest for the Trees."*
+- NASA Carbon Monitoring System. *"A Phase 3 CMS that disaggregates forest biomass estimates in response to stakeholder needs: Seeing the Forest for the Trees."*
