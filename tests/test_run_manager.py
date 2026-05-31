@@ -189,19 +189,6 @@ def test_missing_export_kwargs_raises_error(mock_raster):
             dask_mode="test"
         )
 
-@patch("robustraster.run_manager.RasterDataset")
-def test_missing_gcs_credentials_raises_value_error(mock_raster):
-    mock_dataset = MagicMock()
-    mock_dataset.dims = {"x": 1, "y": 1}
-    mock_raster.return_value.dataset = mock_dataset
-
-    with pytest.raises(ValueError, match=re.escape("Missing required GCS export configuration: gcs_credentials")):
-        run(
-            dataset="dummy.tif",
-            user_function_config={"user_function": dummy_function},
-            export_config={"mode": "raster", "export_to_gcs": True, "gcs_bucket": "my_bucket"},
-            dask_mode="test"
-        )
 
 @patch("robustraster.run_manager.RasterDataset")
 def test_missing_gcs_bucket_raises_value_error(mock_raster):
@@ -213,7 +200,7 @@ def test_missing_gcs_bucket_raises_value_error(mock_raster):
         run(
             dataset="dummy.tif",
             user_function_config={"user_function": dummy_function},
-            export_config={"mode": "raster", "export_to_gcs": True, "gcs_credentials": "path/to/creds.json"},
+            export_config={"mode": "raster", "export_to_gcs": True},
             dask_mode="test"
         )
 

@@ -65,9 +65,15 @@ class ExportProcessor:
             print("CRS IS NOT SET! SET IT IN YOUR EARTH ENGINE CODE!")
         return stacked
 
-    def _create_bucket_and_folder(self, gcs_credentials, gcs_bucket, gcs_folder):
+    def _create_bucket_and_folder(self, gcs_credentials, gcs_bucket, gcs_folder, gcs_project=None):
         # Initialize GCS client
-        storage_client = storage.Client.from_service_account_json(gcs_credentials)
+        if gcs_credentials:
+            storage_client = storage.Client.from_service_account_json(gcs_credentials)
+        else:
+            try:
+                storage_client = storage.Client(project=gcs_project)
+            except EnvironmentError as e:
+                raise ValueError("Could not determine Google Cloud project. Please provide 'gcs_project' in export_config or set the GOOGLE_CLOUD_PROJECT environment variable.") from e
 
         # Check if bucket exists, create if not
         try:
@@ -210,7 +216,7 @@ class ExportProcessor:
         with rasterio.open(
             output_path,
             "w",
-            driver="GTiff",
+            driver="COG",
             height=stacked.rio.height,
             width=stacked.rio.width,
             count=len(band_names),
@@ -227,7 +233,8 @@ class ExportProcessor:
     def _export_to_gcs(self, stacked):
         """Export dataset chunk to Google Cloud Storage as a COG."""
         gcs_credentials = self.kwargs.get('gcs_credentials', None) 
-        fs = gcsfs.GCSFileSystem(token=gcs_credentials)
+        token = gcs_credentials if gcs_credentials else 'google_default'
+        fs = gcsfs.GCSFileSystem(token=token)
         gcs_path = posixpath.join(self._gcs_prefix, f"{self._output_basename}.tif")
         
         with MemoryFile() as memfile:
@@ -264,7 +271,7 @@ class ExportProcessor:
         ds = self.user_function_handler._create_apply_chunk(data_source.dataset, chunks)
         
         if self.kwargs.get("flag") == "GCS":
-            self._gcs_prefix = self._create_bucket_and_folder(self.kwargs.get("gcs_credentials"), self.kwargs.get("gcs_bucket"), self.kwargs.get("gcs_folder", None))
+            self._gcs_prefix = self._create_bucket_and_folder(self.kwargs.get("gcs_credentials"), self.kwargs.get("gcs_bucket"), self.kwargs.get("gcs_folder", None), self.kwargs.get("gcs_project", None))
 
         template_xarray = self.user_function_handler._generate_template_xarray(ds)
         result = xr.map_blocks(self._user_function_export_vector_wrapper,

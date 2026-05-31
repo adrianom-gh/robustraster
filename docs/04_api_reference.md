@@ -42,12 +42,21 @@ A dictionary of export configuration options.
 - `vrt: bool`: `True` to generate a VRT mosaic. Only available for `raster` mode. Cannot be used if exporting results to the cloud.
 
 - `export_to_gcs: bool`: True to export results to GCS. 
-  - `gcs_credentials: str`: Path to service account credentials JSON  
   - `gcs_bucket: str`: Name of the GCS bucket  
   - `gcs_folder: str`: (Optional) Folder within the bucket to store outputs
+  - `gcs_project: str`: (Optional) Google Cloud Project ID. Required if it cannot be determined automatically.
+  - `gcs_credentials: str`: (Optional) Path to service account credentials JSON. By default, `robustraster` uses Application Default Credentials.
 
 - `upload_results_to_gee: bool`: True to automate generating an Earth Engine manifest and uploading the results from GCS to Earth Engine. Requires `export_to_gcs` to be True.
   - `gee_asset_path: str`: The full path to the Earth Engine Folder or ImageCollection to upload into (e.g., `projects/my-project/assets/my_ndvi_collection`). The engine will automatically append the time tag (e.g., the year) to the asset path for each generated image.
+
+> [!IMPORTANT]
+> **Prerequisites for GCS & GEE Uploads**
+> To securely upload results, `robustraster` uses Application Default Credentials (ADC). Before running your code, you must:
+> 1. Install the Google Cloud SDK (gcloud CLI).
+> 2. Run `gcloud auth application-default login` in your terminal.
+> 3. Ensure your Google Cloud account has the required permissions (e.g., Storage Object Admin) to upload to your specified bucket.
+> 4. Authenticate to Earth Engine using `ee.Authenticate()` as normal.
 
 ---
 

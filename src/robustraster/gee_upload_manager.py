@@ -13,10 +13,19 @@ def upload_to_gee_from_gcs(export_config):
     gcs_folder = export_config.get("gcs_folder", "")
     gee_asset_path = export_config.get("gee_asset_path")
 
+    gcs_project = export_config.get("gcs_project")
+
     if not gee_asset_path:
         raise ValueError("Missing 'gee_asset_path' in export_config required for GEE upload.")
     
-    storage_client = storage.Client.from_service_account_json(gcs_credentials)
+    if gcs_credentials:
+        storage_client = storage.Client.from_service_account_json(gcs_credentials, project=gcs_project)
+    else:
+        try:
+            storage_client = storage.Client(project=gcs_project)
+        except EnvironmentError as e:
+            raise ValueError("Could not determine Google Cloud project. Please provide 'gcs_project' in export_config or set the GOOGLE_CLOUD_PROJECT environment variable.") from e
+        
     bucket = storage_client.get_bucket(gcs_bucket)
     
     # List all TIF files in the folder

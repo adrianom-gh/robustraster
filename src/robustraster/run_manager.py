@@ -358,7 +358,7 @@ write.csv(out_data, "{out_csv_r}", row.names=FALSE)
         gcs = export_config.get("export_to_gcs", None)
 
         if gcs:
-            required_gcs_keys = ["gcs_credentials", "gcs_bucket"]
+            required_gcs_keys = ["gcs_bucket"]
             missing_keys = [k for k in required_gcs_keys if k not in export_config]
             if missing_keys:
                 raise ValueError(f"Missing required GCS export configuration: {', '.join(missing_keys)}")

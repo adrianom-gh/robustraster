@@ -189,10 +189,11 @@ class RasterExportProcessor:
 
         if self.kwargs.get("export_to_gcs"):
             self._gcs_prefix = self._create_bucket_and_folder(
-                self.kwargs.get("gcs_credentials"),
-                self.kwargs.get("gcs_bucket"),
-                self.kwargs.get("gcs_folder", None),
-            )
+            self.kwargs.get("gcs_credentials"),
+            self.kwargs.get("gcs_bucket"),
+            self.kwargs.get("gcs_folder", None),
+            self.kwargs.get("gcs_project", None)
+        )
 
         # Optional batching to avoid enormous Dask graphs when chunk sizes must stay small
         target_blocks_per_run = self.kwargs.get("target_blocks_per_run", None)
@@ -281,9 +282,15 @@ class RasterExportProcessor:
         #if self.kwargs.get("vrt"):
         #    self._export_vrt(data_source)
     
-    def _create_bucket_and_folder(self, gcs_credentials, gcs_bucket, gcs_folder):
+    def _create_bucket_and_folder(self, gcs_credentials, gcs_bucket, gcs_folder, gcs_project=None):
         # Initialize GCS client
-        storage_client = storage.Client.from_service_account_json(gcs_credentials)
+        if gcs_credentials:
+            storage_client = storage.Client.from_service_account_json(gcs_credentials)
+        else:
+            try:
+                storage_client = storage.Client(project=gcs_project)
+            except EnvironmentError as e:
+                raise ValueError("Could not determine Google Cloud project. Please provide 'gcs_project' in export_config or set the GOOGLE_CLOUD_PROJECT environment variable.") from e
 
         # Check if bucket exists, create if not
         try:
@@ -486,7 +493,7 @@ class RasterExportProcessor:
         with rasterio.open(
             output_path,
             "w",
-            driver="GTiff",
+            driver="COG",
             height=stacked.rio.height,
             width=stacked.rio.width,
             count=len(band_names),
@@ -516,7 +523,8 @@ class RasterExportProcessor:
     def _export_to_gcs(self, stacked):
         """Export dataset chunk to Google Cloud Storage as a COG."""
         gcs_credentials = self.kwargs.get('gcs_credentials', None) 
-        fs = gcsfs.GCSFileSystem(token=gcs_credentials)
+        token = gcs_credentials if gcs_credentials else 'google_default'
+        fs = gcsfs.GCSFileSystem(token=token)
         gcs_path = posixpath.join(self._gcs_prefix, f"{self._output_basename}.tif")
         
         with MemoryFile() as memfile:

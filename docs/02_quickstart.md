@@ -239,7 +239,7 @@ We also manually configure a custom Dask cluster. More info on Dask and clusters
 
 3. **Set up `export_config` for GCS**:
    - `export_to_gcs = True` tells the exporter to use Google Cloud Storage.
-   - Provide the path to your service account credentials (`gcs_credentials`).
+
    - Specify the bucket and folder to export to (`gcs_bucket`, `gcs_folder`).
 
 4. **Configure Dask manually using `dask_config`**:
@@ -269,7 +269,7 @@ run(
         "mode": "raster",
         "file_format": "GTiff",
         "export_to_gcs": True,
-        "gcs_credentials": r"path\to\service-account-credentials.json",
+
         "gcs_bucket": "test-bucket",
         "gcs_folder": "test-folder"
     },
@@ -299,7 +299,7 @@ We also manually configure a custom Dask cluster. More info on Dask and clusters
 
 3. **Set up `export_config` for GCS**:
    - `export_to_gcs = True` tells the exporter to use Google Cloud Storage.
-   - Provide the path to your service account credentials (`gcs_credentials`).
+
    - Specify the bucket and folder to export to (`gcs_bucket`, `gcs_folder`).
 
 4. **Configure Dask manually using `dask_config`**:
@@ -329,7 +329,7 @@ run(
         "mode": "raster",
         "file_format": "GTiff",
         "export_to_gcs": True,
-        "gcs_credentials": r"path\to\service-account-credentials.json",
+
         "gcs_bucket": "test-bucket",
         "gcs_folder": "test-folder"
     },
@@ -377,7 +377,7 @@ run(
         "file_format": "GTiff",
         "output_folder": "output_folder_name",
         "export_to_gcs": True,
-        "gcs_credentials": r"path\to\service-account-credentials.json",
+
         "gcs_bucket": "test-bucket",
         "gcs_folder": "ndvi-2018-exports",
         "upload_results_to_gee": True,
@@ -455,7 +455,7 @@ run(
         "vrt": True,
         "report": True,
         "export_to_gcs": True,
-        "gcs_credentials": r"path\to\service-account-credentials.json",
+
         "gcs_bucket": "test-bucket",
     },
     dask_mode="custom",
