@@ -71,9 +71,11 @@ def ee_covering_grid_tiles(aoi, crs: str, scale: float, max_pixels_per_tile: int
     return tiles_fc
 
 
-def clip_tiles_to_aoi(tiles_fc, aoi_geom):
+def filter_tiles_by_aoi(tiles_fc, aoi_geom):
     """
-    Clip each tile geometry to AOI using intersection, and remove empty results.
+    Filter tiles to only those that intersect the AOI, but preserve their 
+    original grid-aligned rectangular geometries to ensure perfect mosaicking 
+    during Earth Engine ingestion.
 
     Parameters
     ----------
@@ -85,17 +87,17 @@ def clip_tiles_to_aoi(tiles_fc, aoi_geom):
     Returns
     -------
     ee.FeatureCollection
-        FeatureCollection where each tile's geometry is tile ∩ AOI.
+        FeatureCollection where each tile's original rectangular geometry is preserved.
     """
 
-    def _clip_one_tile(f):
+    def _filter_one_tile(f):
         f = ee.Feature(f)
+        # We compute the intersection just to calculate its area for filtering,
+        # but we DO NOT replace the feature's geometry with the clipped version!
         clipped = f.geometry().intersection(aoi_geom, ee.ErrorMargin(1))
-        return ee.Feature(clipped).copyProperties(f).set(
-            "clip_area", clipped.area(ee.ErrorMargin(1))
-        )
+        return f.set("clip_area", clipped.area(ee.ErrorMargin(1)))
 
-    clipped_fc = ee.FeatureCollection(tiles_fc.map(_clip_one_tile)).filter(
+    clipped_fc = ee.FeatureCollection(tiles_fc.map(_filter_one_tile)).filter(
         ee.Filter.gt("clip_area", 0)
     )
 

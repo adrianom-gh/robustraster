@@ -1,10 +1,5 @@
 # Quick Start
 
-## Try Out the Demo!
-
-I highly recommend trying the demo in the GitHub repo. You don’t need a full understanding of the code yet, but briefly familiarizing yourself with it will make the rest of the documentation easier to follow.
----
-
 ## Example 1: Running a custom Pythonic function to compute NDVI using data from Google Earth Engine  and Exporting to Local Machine
 
 In this example, we’ll export NDVI tiles to your local machine using Google Earth Engine data and a user-defined function.

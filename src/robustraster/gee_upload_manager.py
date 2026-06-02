@@ -61,24 +61,59 @@ def upload_to_gee_from_gcs(export_config):
         
     print(f"[robustraster] Found {len(tif_uris)} files across {len(groups)} time steps. Starting GEE ingestion...")
     
+    # If there are multiple time steps or a specific time_tag, gee_asset_path is treated as a parent ImageCollection.
+    if len(groups) > 1 or (len(groups) == 1 and list(groups.keys())[0] != "default"):
+        parts = gee_asset_path.split('/')
+        if gee_asset_path.startswith('projects/') and len(parts) >= 3:
+            root_idx = 3
+        elif gee_asset_path.startswith('users/') and len(parts) >= 2:
+            root_idx = 2
+        else:
+            root_idx = 1
+            
+        paths_to_check = []
+        current = "/".join(parts[:root_idx])
+        for part in parts[root_idx:]:
+            current = f"{current}/{part}"
+            paths_to_check.append(current)
+            
+        for i, path in enumerate(paths_to_check):
+            try:
+                ee.data.getAsset(path)
+            except Exception:
+                atype = 'IMAGE_COLLECTION' if i == len(paths_to_check) - 1 else 'FOLDER'
+                print(f"[robustraster] Asset '{path}' may not exist. Attempting to create it as {atype}...")
+                try:
+                    ee.data.createAsset({'type': atype}, path)
+                    print(f"[robustraster] ✅ Successfully created {atype}: {path}")
+                except Exception as create_e:
+                    if i == len(paths_to_check) - 1:
+                        print(f"[robustraster] ❌ Could not create {atype}: {create_e}")
+                        raise RuntimeError(f"Failed to create {atype} at {path}. Earth Engine error: {create_e}") from create_e
+                    else:
+                        print(f"[robustraster] ⚠️ Warning: Could not create FOLDER {path}: {create_e}")
+    
     for time_tag, uris in groups.items():
         # Construct the destination asset ID
         if time_tag != "default":
-            # Extract year from time_tag to make the asset name just the year
-            year = time_tag[:4] if len(time_tag) >= 4 and time_tag[:4].isdigit() else time_tag
-            asset_id = posixpath.join(gee_asset_path, year)
+            # Extract date from time_tag to make a distinct asset name (e.g. YYYY_MM_DD)
+            clean_tag = time_tag
+            if "T" in clean_tag:
+                date_part = clean_tag.split("T")[0]
+                if len(date_part) == 8 and date_part.isdigit(): # YYYYMMDD
+                    clean_tag = f"{date_part[:4]}_{date_part[4:6]}_{date_part[6:]}"
+            asset_id = posixpath.join(gee_asset_path, clean_tag)
         else:
             asset_id = gee_asset_path
         
         # Fix asset ID to include 'projects/...' if it's missing but users usually supply full path
         
         # Build manifest
+        # Earth Engine requires each spatial tile to be in its own separate ImageSource 
+        # in order to mosaic them together into a single Image asset.
         sources = []
-        # Chunk URIs to batches of 9000 to remain safely under the 10,000 threshold per source
-        batch_size = 9000
-        for i in range(0, len(uris), batch_size):
-            chunk = uris[i:i + batch_size]
-            sources.append({"uris": chunk})
+        for uri in uris:
+            sources.append({"uris": [uri]})
 
         manifest = {
             "name": asset_id,

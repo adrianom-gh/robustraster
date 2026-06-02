@@ -6,7 +6,7 @@ from .vector_export_manager import VectorExportProcessor
 from .udf_manager import UserFunctionHandler
 from .dask_plugins import EEPlugin, patch_ee_methods
 from .hooks import preview_dataset_hook
-from .ee_grid_tiles import ee_covering_grid_tiles, clip_tiles_to_aoi
+from .ee_grid_tiles import ee_covering_grid_tiles, filter_tiles_by_aoi
 from .ee_grid_tiles import iter_tiles_from_fc
 from .vrt_export_manager import export_vrt
 from distributed import Semaphore
@@ -433,7 +433,7 @@ write.csv(out_data, "{out_csv_r}", row.names=FALSE)
                     max_pixels_per_tile=int(max_pixels_per_tile),
                 )
 
-                clipped_tiles = clip_tiles_to_aoi(tiles_fc, aoi)
+                clipped_tiles = filter_tiles_by_aoi(tiles_fc, aoi)
                 print("[robustraster] AOI tiling enabled. Streaming tiles in batches...")
 
                 total_tiles = tiles_fc.size().getInfo()
