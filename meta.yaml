@@ -1,6 +1,6 @@
 package:
   name: robustraster
-  version: "0.4.4"
+  version: "1.0.0"
 
 source:
   path: .
@@ -55,7 +55,7 @@ extra:
     - adrianom
 
 about:
-  summary: "Test build 0.4.3"
+  summary: "Build 1.0.0"
   license: "MIT"
   description: |
-    Version 0.4.3
+    Version 1.0.0

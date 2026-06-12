@@ -14,3 +14,4 @@ src/robustraster/__pycache__/run_manager.cpython-313.pyc
 src/robustraster/__pycache__/udf_manager.cpython-313.pyc
 src/robustraster/__pycache__/vector_export_manager.cpython-313.pyc
 src/robustraster/__pycache__/vrt_export_manager.cpython-313.pyc
+demos/paper_examples.ipynb
