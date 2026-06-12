@@ -527,6 +527,29 @@ class RasterExportProcessor:
         fs = gcsfs.GCSFileSystem(token=token)
         gcs_path = posixpath.join(self._gcs_prefix, f"{self._output_basename}.tif")
         
+        # Pull x/y coordinate arrays (these are typically pixel centers)
+        x = stacked.coords["x"].values
+        y = stacked.coords["y"].values
+        
+        # Compute pixel resolution from coordinate spacing
+        xres = float(np.abs(x[1] - x[0])) if len(x) > 1 else 30.0
+        yres = float(np.abs(y[1] - y[0])) if len(y) > 1 else 30.0
+
+        # Compute bounds using pixel-center coords -> convert to pixel-edge bounds
+        xmin_center = float(x.min())
+        ymax_center = float(y.max())
+
+        # Convert from pixel centers to pixel edges
+        xmin = xmin_center - (xres / 2.0)
+        ymax = ymax_center + (yres / 2.0)
+
+        # Snap origin to global grid (multiples of resolution)
+        xmin_snapped = np.floor(xmin / xres) * xres
+        ymax_snapped = np.ceil(ymax / yres) * yres
+
+        # Build snapped affine transform
+        transform = from_origin(xmin_snapped, ymax_snapped, xres, yres)
+
         with MemoryFile() as memfile:
             with memfile.open(
                 driver="COG",
@@ -535,7 +558,7 @@ class RasterExportProcessor:
                 count=len(stacked.band),
                 dtype=stacked.dtype,
                 crs=stacked.rio.crs,
-                transform=stacked.rio.transform(),
+                transform=transform,
             ) as dataset:
                 dataset.write(stacked.values)
 

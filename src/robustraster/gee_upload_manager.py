@@ -26,7 +26,10 @@ def upload_to_gee_from_gcs(export_config):
         except EnvironmentError as e:
             raise ValueError("Could not determine Google Cloud project. Please provide 'gcs_project' in export_config or set the GOOGLE_CLOUD_PROJECT environment variable.") from e
         
-    bucket = storage_client.get_bucket(gcs_bucket)
+    bucket = storage_client.bucket(gcs_bucket)
+    if not bucket.exists():
+        print(f"[robustraster] Bucket '{gcs_bucket}' does not exist. Creating it...")
+        bucket = storage_client.create_bucket(gcs_bucket, project=storage_client.project)
     
     # List all TIF files in the folder
     prefix = gcs_folder + "/" if gcs_folder and not gcs_folder.endswith('/') else gcs_folder
